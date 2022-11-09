@@ -24,7 +24,8 @@ Perbedaan *Stateless Widget* dan *Stateful Widget*:
 | `Icon()` | Widget berupa ikon yang dijelaskan di `IconData`. |
 | `Center()` | Widget yang meletakkan `child` di tengah. |
 | `Column()` | Widget yang menampilkan `children` di array vertikal. |
-| `Text()` | Widget yang menampilkan teks dengan `style` tertentu. |
+| `Text()` | Widget yang menampilkan teks. |
+| `TextStyle()` | Widget yang mendeksripsikan `style` yang berupa format dan warna teks. |
 
 ***
 
@@ -41,7 +42,7 @@ Fungsi setState() memberi notifikasi ke *framework* ketika *state* objek tersebu
 | Diinisiasi saat *compile time* dan sudah ditetapkan saat *runtime* sehingga tidak dapat diubah | Diinisiasi saat *runtime* dan dapat ditetapkan sekali |
 | Dapat ditentukan dalam *class* dan fungsi | Dapat ditentukan dalam fungsi saja |
 | Jika *state* di-*update*, variabel akan diinisiasi lagi | Jika *state* di-*update*, variabel tidak diinisiasi | 
-| Digunakan jika *value* tidak diubah saat kode dijalankan | Digunakan jika *value* tidak diketahui satt *compile time* | 
+| Digunakan jika *value* tidak diubah saat kode dijalankan | Digunakan jika *value* tidak diketahui saat *compile time* | 
 
 ***
 
@@ -72,9 +73,9 @@ Fungsi setState() memberi notifikasi ke *framework* ketika *state* objek tersebu
     floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
     ```
 
-    Di properti `floatingActionButton`, menambahkan widget `Stack()` agar app dapat menggunakan lebih dari satu widget `FloatingActionButton()`. Kemudian, masukkan list widget di properti `child` `Stack()` yang berisi widget `Positioned()` untuk mengatur posisi dari tombol - di layar, yaitu 20dp dari kiri dan 10 dp dari bawah. Kemudian, `child` dari widget tersebut adalah `FloatingActionButton()`. Isi propertinya adalah `child` berupa ikon -, `heroTag` serta `tooltip` sebuah string "Decrement", dan akan menjalankan fungsi `_decrementCounter` saat di klik.
+    Di properti `floatingActionButton`, menambahkan widget `Stack()` agar app dapat menggunakan lebih dari satu widget `FloatingActionButton()`. Kemudian, masukkan list widget di properti `child Stack()` yang berisi widget `Positioned()` untuk mengatur posisi dari tombol - di layar, yaitu 20dp dari kiri dan 10dp dari bawah. Kemudian, `child` dari widget tersebut adalah sebuah *floating action button*. Isi propertinya adalah `child` berupa ikon -, `heroTag` serta `tooltip` sebuah string "Decrement", dan akan menjalankan fungsi `_decrementCounter` saat di klik.
 
-    Dalam list widget di properti `child` `Stack()` tambahkan lagi widget `Positioned()` untuk mengatur posisi dari tombol + di layar, yaitu 20dp dari kanan dan 10 dp dari bawah. Selanjutnya, `child` dari widget tersebut adalah `FloatingActionButton()`. Isi propertinya adalah `child` berupa ikon +, `heroTag` serta `tooltip` sebuah string "Increment", dan akan menjalankan fungsi `_incrementCounter` saat di klik.
+    Dalam list widget di properti `child Stack()` tambahkan lagi widget `Positioned()` untuk mengatur posisi dari tombol + di layar, yaitu 20dp dari kanan dan 10dp dari bawah. Selanjutnya, `child` dari widget tersebut adalah sebuah *floating action button*. Isi propertinya adalah `child` berupa ikon +, `heroTag` serta `tooltip` sebuah string "Increment", dan akan menjalankan fungsi `_incrementCounter` saat di klik.
 
     ```shell
     floatingActionButton: Stack(
@@ -114,7 +115,7 @@ Fungsi setState() memberi notifikasi ke *framework* ketika *state* objek tersebu
         }
         ```
 
-    * Untuk tombol - akan menjalankan fungsi `_decrementCounter` yang akan *decrement* variabel `_counter` dan menampilkannya sampai bernilai 0. Apabila lebih dari nilai 0, tidak memiliki efek apapun pada `_counter`.
+    * Untuk tombol - akan menjalankan fungsi `_decrementCounter` yang akan *decrement* variabel `_counter` dan menampilkannya sampai bernilai 0. Apabila lebih kecil dari nilai 0, tidak memiliki efek apapun pada `_counter`.
 
         ```shell
         void _decrementCounter() {
@@ -127,7 +128,7 @@ Fungsi setState() memberi notifikasi ke *framework* ketika *state* objek tersebu
         }
         ```
 
-    * Untuk menampilkan counter yang berubah apabila bernilai ganjil dan genap, di `children` widget `Column()` dari body app, tambahkan sebuah *if statement*. *If statement* tersebut memiliki kondisi `_counter % 2 == 0` sehingga akan memilih widget `Text()` bertulisan "GENAP" yang berwarna merah apabila `_counter` genap dan memilih widget `Text()` bertulisan "GANJIL" yang berwarna biru apabila `_counter` ganjil.
+    * Untuk menampilkan text yang berubah apabila bernilai ganjil dan genap, di `children` widget `Column()` dari body app, tambahkan sebuah *if statement*. *If statement* tersebut memiliki kondisi `_counter % 2 == 0` sehingga akan memilih widget `Text()` bertulisan "GENAP" yang berwarna merah apabila `_counter` genap dan memilih widget `Text()` bertulisan "GANJIL" yang berwarna biru apabila `_counter` ganjil.
 
         ```shell
         if (_counter % 2 == 0) ...[
@@ -146,7 +147,7 @@ Fungsi setState() memberi notifikasi ke *framework* ketika *state* objek tersebu
 ***
 
 ## Bonus
-Untuk menghilangkan tombol - apabila counter bernilai 0, tambahkan *if statement* pada widget tombol tersebut. Apabila `_counter` lebih dari 0, maka tampilkan widget `Positioned()` tombol - dan jika kurang dari 0 dihilangkan.
+Untuk menghilangkan tombol - apabila counter bernilai 0, tambahkan *if statement* pada widget tombol tersebut. Apabila `_counter` lebih dari sama dengan 0, maka tampilkan widget `Positioned()` tombol - dan jika kurang dari 0 dihilangkan.
 
 ```shell
 ...
