@@ -1,3 +1,337 @@
+# Tugas 9 Assignment PBP
+
+## Apakah dapat Melakukan Pengambilan Data JSON tanpa Membuat Model
+
+Kita bisa melakukan pengambilan data JSON tanpa membuat model dengan memanggil fungsi `jsonDecode()` dari library `dart:convert`. Kemudian, fungsi tersebut mengembalikan sebuah `Map<String, dynamic>`. Dari situ kita dapat mengakses atribut data JSON. Misalkan:
+
+JSON:
+```shell
+{
+"name": "John Smith",
+"email": "john@example.com"
+}
+```
+Dart Code:
+```shell
+Map<String, dynamic> user = jsonDecode(jsonString);
+print(‘Hello, ${user['name']}!');
+print('We sent the verification link to ${user['email']}.');
+```
+
+Pengambilan data JSON tanpa membuat model tidak lebih baik daripada membuat model terlebih dahulu. Hal itu disebabkan karena kita tidak dapat mengetahui tipe dari atribut sebelum runtime. Sehingga kita kehilangan fitur, seperti *type safety*, *autocompletion*, dan *exception* saat compile. Selain itu dengan membuat model, pengambilan data dapat lebih terstruktur.
+
+***
+
+## Widget yang Digunakan
+
+| Widget | Deskripsi | Widget | Deskripsi
+| --- | --- | --- | --- |
+| `Container` | Widget yang membungkus widget lain. | `DateFormat` | Formating tanggal `DateTime`. |
+| `Center` | Widget yang meletakkan *child* di tengah. | `Text` | Widget yang menampilkan teks. | 
+| `Column` | Widget yang menampilkan *children* di array vertikal. | `TextStyle` | Widget yang mendeksripsikan *style* yang berupa format dan warna teks. |
+| `MaterialPageRoute` | Modal yang mengganti keseluruhan layar. | `Padding` | Widget yang menambahkan padding pada *child* |
+| `ListView.builder` | Membuat widget dari semua item dalam array. | `FloatingActionButton` | Tombol yang melayang di atas konten |
+| `FutureBuilder` | Widget yang membuat diri sendiri berdasarkan interaksi terakhir dengan `Future` | `TextSpan` | Span dari teks yang *immutable* |
+| `Future` | Hasil dari komputasi asinkronus | `Text.rich` | Membuat widget teks dengan `InlineSpan` |
+| `BoxDecoration` | Membuat sebuah box | 
+
+***
+
+## Mekanisme Pengambilan Data dari JSON hingga dapat Ditampilkan
+
+Berikut adalah mekanisme pengambilan data dari JSON sampai dapat ditampilkan di Flutter:
+
+1. Membuat sebuah fungsi `fetchData()` yang akan melakukan *fetch* ke URL yang diinginkan menggunakan method `http.get`. `http.get` akan mengembalikan sebuah *response*. *Response* tersebut berisi data JSON apabila *fetch*-nya berhasil.
+
+2. Kemudian, membuat sebuah model yang berisi data di JSON. Di model tersebut tambahkan sebuah *factory constructor* yang akan mengubah semua JSON ke dalam model. Di dalam fungsi `fetchData()` panggil *factory constructor* dan kembalikan.
+
+3. Untuk menampilkan data, kita dapat menggunakan `FutureBuilder`. Di properti *future* panggil fungsi `fetchData()` dan properti *builder* berisi *widget* berserta data yang akan ditampilkan.
+
+***
+
+## Implementasi
+
+1. Menambahkan tombol navigasi pada drawer/hamburger untuk ke halaman *mywatchlist*.
+
+    Di file `custom_drawer.dart` tambahkan sebuah `ListView` yang akan menjalankan `Navigator` saat diklik sehingga berpindah ke halaman *mywatchlist*.
+
+    ```shell
+    ListTile(
+        title: const Text('My Watch List'),
+        onTap: () {
+            // Route menu ke halaman my watchlist
+            Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+                builder: (context) => const MyWatchlistPage()),
+            );
+        },
+        ),
+    ```
+
+2. Membuat satu file dart yang berisi model *mywatchlist*.
+
+    Membuat *directory* baru bernama models dan didalamnya masukkan `budgets.dart` dan tambahkan `watchlist.dart` yang berisi model *mywatchlist*. Model tersebut didapat dari endpoint JSON Django yang dikerjakan pada Tugas 3, yaitu di url: http://tugas-2-pbp-airel.herokuapp.com/mywatchlist/json/.
+
+    Buka situs web Quicktype, yaitu https://app.quicktype.io/ untuk mendapatkan representasi model dari data JSON. Ubah *setup name* menjadi `Watchlist`, *source type* menjadi `JSON`, serta *languange* Dart. Kemudian, *copy paste* data JSON tersebut. Terakhir. *copy paste* representasi model ke `watchlist.dart`.
+
+    ![Screenshot Quicktype](quicktype-screenshot.png)
+
+    Kemudian, menambahkan dependensi HTTP dengan *download package* http menggunakan *command* `flutter pub add http`. Selain itu, tambahkan kode `<uses-permission android:name="android.permission.INTERNET" />` pada `android/app/src/main/AndroidManifest.xml`.
+
+3. Menambahkan halaman mywatchlist
+
+    Membuat file baru bernama `mywatchlist.dart`. Kemudian, membuat fungsi `fetchWatchlist()` yang akan mengambil data dari url https://tugas-2-pbp-airel.herokuapp.com/mywatchlist/json lalu mengubahnya ke model yang sudah dibuat dan akan mengembalikan list objek model tersebut.
+
+    ```shell
+    import 'package:http/http.dart' as http;
+    import 'dart:convert';
+    import '../models/watchlist.dart';
+
+    Future<List<Watchlist>> fetchWatchlist() async {
+    var url =
+        Uri.parse('https://tugas-2-pbp-airel.herokuapp.com/mywatchlist/json');
+    var response = await http.get(
+        url,
+        headers: {
+        "Access-Control-Allow-Origin": "*",
+        "Content-Type": "application/json",
+        },
+    );
+
+    // melakukan decode response menjadi bentuk json
+    var data = jsonDecode(utf8.decode(response.bodyBytes));
+
+    // melakukan konversi data json menjadi object Watchlist
+    List<Watchlist> listWatchlist = [];
+    for (var d in data) {
+        if (d != null) {
+        listWatchlist.add(Watchlist.fromJson(d));
+        }
+    }
+
+    return listWatchlist;
+    }
+    ```
+
+    Selanjutnya, menambahkan drawer dan membuat kode yang menampilkan data pada bagian `Widget(BuildContext context)`. Data ditampilkan menggunakan widget `FutureBuilder` yang akan membuat `ListView` yang berisi `Container` dengan judul watchlist.
+
+    ```shell
+    drawer: const CustomDrawer(),
+    body: FutureBuilder(
+        future: fetchWatchlist(),
+        builder: (context, AsyncSnapshot snapshot) {
+            if (snapshot.data == null) {
+            return const Center(child: CircularProgressIndicator());
+            } else {
+            if (!snapshot.hasData) {
+                return Column(
+                children: const [
+                    Text(
+                    "Tidak ada watchlist.",
+                    style:
+                        TextStyle(color: Color(0xff59A5D8), fontSize: 20),
+                    ),
+                    SizedBox(height: 8),
+                ],
+                );
+            } else {
+                return ListView.builder(
+                    itemCount: snapshot.data!.length,
+                    itemBuilder: (_, index) => InkWell(
+                        child: Container(
+                            margin: const EdgeInsets.symmetric(
+                                horizontal: 16, vertical: 12),
+                            padding: const EdgeInsets.all(20.0),
+                            decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(15.0),
+                                boxShadow: const [
+                                BoxShadow(
+                                    color: Colors.black, blurRadius: 2.0)
+                                ]),
+                            child: Text(
+                            "${snapshot.data![index].fields.title}",
+                            style: const TextStyle(
+                                fontSize: 18.0,
+                            ),
+                            ),
+                        ),
+                        ));
+            }
+            }
+        });
+    ```
+
+    Dalam widget `Container`, tambahkan properti *onTap* yang akan melakukan `Navigator.push()` ke halaman detail dengan argumen data wishlist yang di klik.
+
+    ```shell
+    onTap: () {
+        Navigator.push(
+        context,
+        MaterialPageRoute(
+            builder: (context) => MyDetailPage(data: snapshot.data![index])),
+        );
+    },
+    ``` 
+
+4. Menambahkan halaman detail untuk setiap mywatchlist yang ada pada daftar tersebut dengan membuat file baru bernama `detail.dart`. Halaman ini menampilkan judul, release date yang sudah di format, rating, status, dan review yang dibungkus widget `Padding`.
+    
+    Kemudian, pembuatan setiap text menggunakan widget `Text.rich` yang memiliki properti *child* berupa list `TextSpan`. Agar *weight* teks atribut watchlist bold dan *weight* teks isi atributnya normal.
+
+    <details>
+        <summary>Kode lengkap</summary>
+
+    ```shell
+    Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+        Padding(
+            padding: const EdgeInsets.all(20.0),
+            child: Center(
+                child: Text('${widget.data.fields.title}',
+                    style: const TextStyle(
+                        fontSize: 30, fontWeight: FontWeight.bold)),
+            )),
+        Padding(
+            padding: const EdgeInsets.all(10.0),
+            child: Text.rich(
+                TextSpan(
+                text: 'Release Date: ',
+                style: const TextStyle(
+                    fontWeight: FontWeight.bold, fontSize: 18),
+                children: <TextSpan>[
+                    TextSpan(
+                        text: DateFormat('MMM d, y')
+                            .format(widget.data.fields.releaseDate),
+                        style: const TextStyle(
+                            fontWeight: FontWeight.normal, fontSize: 18)),
+                ],
+                ),
+            )),
+        Padding(
+            padding: const EdgeInsets.all(10.0),
+            child: Text.rich(
+                TextSpan(
+                text: 'Rating: ',
+                style: const TextStyle(
+                    fontWeight: FontWeight.bold, fontSize: 18),
+                children: <TextSpan>[
+                    TextSpan(
+                        text: '${widget.data.fields.rating}/5',
+                        style: const TextStyle(
+                            fontWeight: FontWeight.normal, fontSize: 18)),
+                ],
+                ),
+            )),
+        Padding(
+            padding: const EdgeInsets.all(10.0),
+            child: Text.rich(
+                TextSpan(
+                text: 'Status: ',
+                style: const TextStyle(
+                    fontWeight: FontWeight.bold, fontSize: 18),
+                children: <TextSpan>[
+                    if (widget.data.fields.watched) ...[
+                    const TextSpan(
+                        text: 'Watched',
+                        style: TextStyle(
+                            fontWeight: FontWeight.normal, fontSize: 18)),
+                    ] else ...[
+                    const TextSpan(
+                        text: 'Haven\'t Watched',
+                        style: TextStyle(
+                            fontWeight: FontWeight.normal, fontSize: 18)),
+                    ]
+                ],
+                ),
+            )),
+        Padding(
+            padding: const EdgeInsets.all(10.0),
+            child: Text.rich(
+                TextSpan(
+                text: 'Review:\n',
+                style: const TextStyle(
+                    fontWeight: FontWeight.bold, fontSize: 18),
+                children: <TextSpan>[
+                    TextSpan(
+                        text: '${widget.data.fields.review}',
+                        style: const TextStyle(
+                            fontWeight: FontWeight.normal, fontSize: 18)),
+                ],
+                ),
+            )),
+            ],
+        );
+    ```
+    </details>
+
+5. Membuat sebuah `FloatingActionButton` yang align di tengah. Ketika tombol ditekan, akan melakukan `Navigator.pop()` untuk kembali ke halaman mywachlist.
+
+    ```shell
+    floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+    floatingActionButton: FloatingActionButton.extended(
+        tooltip: 'Back',
+        heroTag: 'Back',
+        label: const Text("Back"),
+        onPressed: () => Navigator.pop(
+            context,
+            MaterialPageRoute(
+                builder: (context) => const MyWatchlistPage()))),
+    ```
+
+***
+
+## Bonus
+
+1. Menambahkan checkbox pada setiap watchlist pada halaman mywatchlist.
+
+    Mengganti *child* `Container` yang tadinya `Text` judul watchlist menjadi widget `Row`. Kemudian, masukkan `Text` judul watchlist tersebut dan tambah sebuah `Checkbox`. Dalam checkbox tambahkan properti *onChanged* yang akan mengubah variabel *watched* watchlist tersebut ketika ditekan.
+
+    ```shell
+    Checkbox(
+        checkColor: Colors.white,
+        value: snapshot.data![index].fields.watched,
+        onChanged: (bool? value) {
+            setState(() {
+                snapshot.data![index].fields.watched =
+                    value!;
+            });
+        },
+    ),
+    ```
+
+2. Menambahkan warna untuk outline pada setiap mywatchlist pada halaman mywatchlist berdasarkan status ditonton
+
+    Mengubah properti *boxShadow* di `ListBuilder` menjadi sebuah *boolean expression* dimana warnanya hijau ketika watchlist sudah ditonton dan warnanya merah ketika watchlist belum ditonton.
+    
+    ```shell
+    boxShadow: (snapshot.data![index].fields.watched) ? const [ BoxShadow(color: Colors.green, blurRadius: 2.0) ]
+        : const [ BoxShadow(color: Colors.red, blurRadius: 2.0) ]),
+    ```
+
+3. *Refactor* fungsi fetch data
+
+    Membuat file `fetch_wishlist.dart` di dalam folder `lib/widgets` dan *copy paste* fungsi fetch data yang sudah dibuat ke dalamnya. Kemudian, di `mywatchlist.dart` hapus fungsi tersebut dan tambahkan `import 'widgets/fetch_watchlist.dart';`
+
+***
+
+## Credits
+
+Sumber jawaban nomor 1 adalah [Navigation, Networking, and
+Integration](https://scele.cs.ui.ac.id/pluginfile.php/165589/mod_resource/content/1/10%20-%20Navigation%2C%20Networking%2C%20and%20Integration.pdf) dan [JSON and serialization](https://docs.flutter.dev/development/data-and-backend/json#which-json-serialization-method-is-right-for-me)
+
+Sumber jawaban nomor 2 adalah [material library](https://api.flutter.dev/flutter/material/material-library.html)
+
+Sumber jawaban nomor 3 adalah [Fetch data from the internet](https://docs.flutter.dev/cookbook/networking/fetch-data)
+
+***
+
+## Previous Assignment
+
+<details>
+  <summary>Tugas 8</summary>
+
 # Tugas 8 Assignment PBP
 
 ## Perbedaan `Navigator.push` dan `Navigator.pushReplacement`
@@ -511,7 +845,7 @@ Sumber jawaban nomor 4 adalah [Handbook for Navigation in Flutter](https://mutua
 
 ***
 
-## Previous Assignment
+</details>
 
 <details>
   <summary>Tugas 7</summary>

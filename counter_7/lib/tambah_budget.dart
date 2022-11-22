@@ -1,7 +1,7 @@
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import '../widgets/custom_drawer.dart';
-import '../widgets/budgets.dart';
+import 'models/budgets.dart';
 import 'package:flutter/material.dart';
 
 void main() {
